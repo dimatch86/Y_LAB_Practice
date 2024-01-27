@@ -5,7 +5,6 @@ import org.example.monitoringservice.exception.NotAvailableReadingException;
 import org.example.monitoringservice.in.controller.ReadingController;
 import org.example.monitoringservice.dto.ReadingDto;
 import org.example.monitoringservice.exception.TooRecentReadingException;
-import org.example.monitoringservice.model.user.RoleType;
 import org.example.monitoringservice.repository.InMemoryReadingRepository;
 import org.example.monitoringservice.response.Response;
 import org.example.monitoringservice.service.ReadingService;
@@ -27,7 +26,7 @@ public class ReadingsCommandReceiver {
             new ReadingController(new ReadingService(new InMemoryReadingRepository(new ArrayList<>())));
 
     public void sendReading() {
-        if (isNotAuthenticated()) {
+        if (UserContext.isNotAuthenticated()) {
             return;
         }
         System.out.println(MessageFormat.format("Введите тип показаний. В настоящее время доступны: {0}",
@@ -50,7 +49,7 @@ public class ReadingsCommandReceiver {
     }
 
     public void addReadingType() {
-        if (isNotAuthenticated() || isNotAdmin()) {
+        if (UserContext.isNotAuthenticated() || UserContext.isNotAdmin()) {
             return;
         }
         System.out.println("Введите новый тип показаний");
@@ -61,7 +60,7 @@ public class ReadingsCommandReceiver {
 
 
     public void readingsByMonth() {
-        if (isNotAuthenticated()) {
+        if (UserContext.isNotAuthenticated()) {
             return;
         }
         System.out.println("Введите месяц");
@@ -74,7 +73,7 @@ public class ReadingsCommandReceiver {
     }
 
     public void actualReadings() {
-        if (isNotAuthenticated()) {
+        if (UserContext.isNotAuthenticated()) {
             return;
         }
         Response response = readingController.getActualReadings();
@@ -82,7 +81,7 @@ public class ReadingsCommandReceiver {
     }
 
     public void historyOfReadings() {
-        if (isNotAuthenticated()) {
+        if (UserContext.isNotAuthenticated()) {
             return;
         }
         Response response = readingController.getHistoryOfReadings();
@@ -93,22 +92,6 @@ public class ReadingsCommandReceiver {
         if (!readingValue.matches(ValidationUtils.READING_VALUE_PATTERN)) {
             System.out.println("Некорректный ввод значения передаваемых показаний. " +
                     "Введите положительное целое число или дробное число с точкой");
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isNotAuthenticated() {
-        if (UserContext.getCurrentUser() == null) {
-            System.out.println("Вы не авторизованы. Выполните вход в ваш аккаунт");
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isNotAdmin() {
-        if (!UserContext.getCurrentUser().getRole().equals(RoleType.ADMIN)) {
-            System.out.println("У вас недостаточно прав для данного действия");
             return true;
         }
         return false;

@@ -56,6 +56,9 @@ public class AuthenticationCommandReceiver {
     }
 
     public void authority() {
+        if (UserContext.isNotAuthenticated()) {
+            return;
+        }
         Response response = authController.currentUserAuthority();
         log.info(response.getMessage());
     }
