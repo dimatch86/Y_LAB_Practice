@@ -1,19 +1,17 @@
 package org.example.monitoringservice.in.receiver;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.monitoringservice.dto.request.ReadingDto;
+import org.example.monitoringservice.dto.response.Response;
+import org.example.monitoringservice.exception.DbException;
 import org.example.monitoringservice.exception.NotAvailableReadingException;
-import org.example.monitoringservice.in.controller.ReadingController;
-import org.example.monitoringservice.dto.ReadingDto;
+import org.example.monitoringservice.exception.ReadingTypeAlreadyExistsException;
 import org.example.monitoringservice.exception.TooRecentReadingException;
-import org.example.monitoringservice.repository.InMemoryReadingRepository;
-import org.example.monitoringservice.response.Response;
-import org.example.monitoringservice.service.ReadingService;
-import org.example.monitoringservice.util.AvailableReadingsUtil;
+import org.example.monitoringservice.in.controller.ReadingController;
 import org.example.monitoringservice.util.UserContext;
 import org.example.monitoringservice.util.ValidationUtils;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -21,16 +19,15 @@ import java.util.UUID;
  * Interaction with the console for actions with readings service
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ReadingsCommandReceiver {
-    private final ReadingController readingController =
-            new ReadingController(new ReadingService(new InMemoryReadingRepository(new ArrayList<>())));
+    private final ReadingController readingController;
 
     public void sendReading() {
         if (UserContext.isNotAuthenticated()) {
             return;
         }
-        System.out.println(MessageFormat.format("Введите тип показаний. В настоящее время доступны: {0}",
-                AvailableReadingsUtil.getAvailableReadings()));
+        System.out.println("Введите тип показаний");
         String readingType = new Scanner(System.in).nextLine().toUpperCase().trim();
 
         System.out.println("Введите ваши показания");
@@ -42,9 +39,9 @@ public class ReadingsCommandReceiver {
         try {
             Response response = readingController.sendReading(readingDto);
             log.info(response.getMessage());
-        } catch (TooRecentReadingException | NotAvailableReadingException e) {
+            System.out.println("Ваши показания сохранены");
+        } catch (TooRecentReadingException | NotAvailableReadingException | DbException e) {
             System.out.println(e.getLocalizedMessage());
-
         }
     }
 
@@ -54,8 +51,14 @@ public class ReadingsCommandReceiver {
         }
         System.out.println("Введите новый тип показаний");
         String newReadingType = new Scanner(System.in).nextLine().toUpperCase().trim();
-        Response response = readingController.addNewReadingType(newReadingType);
-        log.info(response.getMessage());
+        try {
+            Response response = readingController.addNewReadingType(newReadingType);
+            log.info(response.getMessage());
+            System.out.println("Новый тип показаний добавлен");
+        } catch (ReadingTypeAlreadyExistsException | DbException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+
     }
 
 
@@ -63,29 +66,47 @@ public class ReadingsCommandReceiver {
         if (UserContext.isNotAuthenticated()) {
             return;
         }
-        System.out.println("Введите месяц");
-        String month = new Scanner(System.in).nextLine().toUpperCase().trim();
-        if (isInvalidMonth(month)) {
+        System.out.println("Введите целое число от 1 до 12");
+        String monthNumber = new Scanner(System.in).nextLine().trim();
+        if (isInvalidMonth(monthNumber)) {
             return;
         }
-        Response response = readingController.getReadingsByMonth(month);
-        log.info(response.getMessage());
+        try {
+            Response response = readingController.getReadingsByMonth(monthNumber);
+            log.info(response.getMessage());
+            response.getData().forEach(System.out::println);
+        } catch (DbException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+
     }
 
     public void actualReadings() {
         if (UserContext.isNotAuthenticated()) {
             return;
         }
-        Response response = readingController.getActualReadings();
-        log.info(response.getMessage());
+        try {
+            Response response = readingController.getActualReadings();
+            log.info(response.getMessage());
+            response.getData().forEach(System.out::println);
+        } catch (DbException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+
     }
 
     public void historyOfReadings() {
         if (UserContext.isNotAuthenticated()) {
             return;
         }
-        Response response = readingController.getHistoryOfReadings();
-        log.info(response.getMessage());
+        try {
+            Response response = readingController.getHistoryOfReadings();
+            log.info(response.getMessage());
+            response.getData().forEach(System.out::println);
+        } catch (DbException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+
     }
 
     private boolean isInvalidReadingValue(String readingValue) {
@@ -97,8 +118,8 @@ public class ReadingsCommandReceiver {
         return false;
     }
 
-    private boolean isInvalidMonth(String month) {
-        if (!month.matches(ValidationUtils.MONTH_PATTERN)) {
+    private boolean isInvalidMonth(String monthNumber) {
+        if (!monthNumber.matches("\\d+")) {
             System.out.println("Некорректно введен месяц года");
             return true;
         }

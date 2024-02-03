@@ -1,0 +1,17 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd"
+        logicalFilePath="db/changelog.xml">
+
+    <include file="changeset/create_schema.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/create-sequence.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/create-user-table.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/create-reading-table.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/create-role-table.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/insert-role.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/create-available-reading-table.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/insert-available-readings.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -7,9 +7,12 @@
 ---
 Стек используемых технологий:
 - Java 17
+- JDBC
+- PostgreSQL
+- Liquibase
 - Lombok
 - Logback
-- JUnit
+- Testcontainers
 - Javadoc
 
 ---
@@ -23,11 +26,19 @@
 ### Требования
 
 Проект использует синтаксис Java 17. Для локального запуска вам потребуется
-установленный JDK 17.
+установленный JDK 17, а также Docker Desktop для запуска контейнера с базой данных Postgres.
 
 ### Используя среду разработки IDEA
+Откройте проект. Дождитесь индексации.
+В корне проекта находится файл docker-compose.yml c контейнером базы данных PostgreSQL.
+Первый шаг - запуск контейнера базы данных 'monitoring_service_db'. 
+Откройте файл docker-compose в среде разработки и нажмите на значок запуска напротив имени контейнера (зеленый треугольник),
+либо в командной строке перейдите в папку с проектом и запустите командой:
+```
+docker-compose run --service-ports monitoring_service_database
+```
 
-Откройте проект. Дождитесь индексации. Запустите main метод класса [src/main/java/org/example/monitoringservice/Main.java](src/main/java/org/example/monitoringservice/Main.java)
+Запустите main метод класса [src/main/java/org/example/monitoringservice/Main.java](src/main/java/org/example/monitoringservice/Main.java)
 
 ---
 После запуска приложения можно работать с программой из консоли посредством следующих команд:
@@ -44,3 +55,8 @@
 
 ---
 Приложение логирует действия пользователя с записью логов в файл. Файл сохраняется в папку logs в корне проекта.
+
+## Настриваемые параметры
+
+- порт для подключения к базе данных: устанавливается в файле [src/main/resources/config.properties](src/main/resources/config.properties), по умолчанию установлен порт 5434,
+  при изменении необходимо задать такой же внешний порт для контейнера 'monitoring_service_database' в файле docker-compose.yml;

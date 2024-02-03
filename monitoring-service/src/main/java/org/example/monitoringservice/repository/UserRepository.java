@@ -8,4 +8,6 @@ public interface UserRepository {
 
     void saveUser(User user);
     Optional<User> findByEmail(String userEmail);
+
+    String getAuthorityInfo(String role);
 }

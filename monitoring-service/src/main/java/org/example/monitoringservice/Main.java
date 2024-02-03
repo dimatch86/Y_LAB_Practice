@@ -1,5 +1,6 @@
 package org.example.monitoringservice;
 
+import org.example.monitoringservice.db.LiquibaseInitializer;
 import org.example.monitoringservice.in.router.MainRouter;
 
 /**
@@ -10,6 +11,7 @@ import org.example.monitoringservice.in.router.MainRouter;
 public class Main {
     static MainRouter mainRouter = new MainRouter();
     public static void main(String[] args) {
+        new LiquibaseInitializer().initLiquibase();
         mainRouter.run();
     }
 }
