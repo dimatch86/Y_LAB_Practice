@@ -3,6 +3,7 @@ package org.example.monitoringservice.repository;
 import org.example.monitoringservice.exception.NotAvailableReadingException;
 import org.example.monitoringservice.exception.TooRecentReadingException;
 import org.example.monitoringservice.model.reading.Reading;
+import org.example.monitoringservice.model.reading.ReadingType;
 import org.example.monitoringservice.model.user.RoleType;
 import org.example.monitoringservice.model.user.User;
 import org.example.monitoringservice.util.UserContext;
@@ -94,7 +95,7 @@ class DbReadingRepositoryTest extends AbstractTest {
 
         List<String> availableList = readingRepository.findAvailableReadings();
 
-        String newReadingType = "ГАЗ";
+        ReadingType newReadingType = new ReadingType("ГАЗ");
         assertFalse(availableList.contains("ГАЗ"));
 
         readingRepository.saveNewReadingType(newReadingType);

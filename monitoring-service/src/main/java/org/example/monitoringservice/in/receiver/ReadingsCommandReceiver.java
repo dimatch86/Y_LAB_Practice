@@ -9,6 +9,7 @@ import org.example.monitoringservice.exception.NotAvailableReadingException;
 import org.example.monitoringservice.exception.ReadingTypeAlreadyExistsException;
 import org.example.monitoringservice.exception.TooRecentReadingException;
 import org.example.monitoringservice.in.controller.ReadingController;
+import org.example.monitoringservice.model.reading.ReadingType;
 import org.example.monitoringservice.util.UserContext;
 import org.example.monitoringservice.util.ValidationUtils;
 
@@ -52,7 +53,7 @@ public class ReadingsCommandReceiver {
         System.out.println("Введите новый тип показаний");
         String newReadingType = new Scanner(System.in).nextLine().toUpperCase().trim();
         try {
-            Response response = readingController.addNewReadingType(newReadingType);
+            Response response = readingController.addNewReadingType(new ReadingType(newReadingType));
             log.info(response.getMessage());
             System.out.println("Новый тип показаний добавлен");
         } catch (ReadingTypeAlreadyExistsException | DbException e) {

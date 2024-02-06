@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.monitoringservice.exception.DbException;
 import org.example.monitoringservice.exception.NotAvailableReadingException;
 import org.example.monitoringservice.exception.TooRecentReadingException;
+import org.example.monitoringservice.model.reading.ReadingType;
 import org.example.monitoringservice.model.reading.Reading;
 import org.example.monitoringservice.util.UserContext;
 
@@ -135,12 +136,13 @@ public class DbReadingRepository implements ReadingRepository {
         }
     }
 
-    public void saveNewReadingType(String newReadingType) {
+    @Override
+    public void saveNewReadingType(ReadingType readingType) {
         String sql = "INSERT INTO monitoring_service_schema.available_reading " +
                 "(id, type) " +
                 "VALUES (NEXTVAL('jdbc_sequence'), ?)";
         try (PreparedStatement preparedStatement = DriverManager.getConnection(url, userName, userPassword).prepareStatement(sql)){
-            preparedStatement.setString(1, newReadingType);
+            preparedStatement.setString(1, readingType.getType());
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
@@ -284,6 +286,25 @@ public class DbReadingRepository implements ReadingRepository {
                     .format("Ошибка базы данных: {0}", e.getLocalizedMessage()));
         }
         return availableReadings;
+    }
+    public Optional<ReadingType> findAvailableReadingByType(String type) {
+        String sql ="SELECT * FROM monitoring_service_schema.available_reading ar " +
+                "WHERE ar.type = ?";
+        Optional<ReadingType> availableReading = Optional.empty();
+        try (PreparedStatement statement = DriverManager.getConnection(url, userName, userPassword).prepareStatement(sql)) {
+            statement.setString(1, type);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    availableReading = Optional.of(new ReadingType(
+                            resultSet.getString("type")));
+
+                }
+            }
+        } catch (SQLException e) {
+            throw new DbException(MessageFormat
+                    .format("Ошибка базы данных: {0}", e.getLocalizedMessage()));
+        }
+        return availableReading;
     }
 
     private String getTypeByTypeId(int typeId) {

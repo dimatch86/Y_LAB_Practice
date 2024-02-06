@@ -5,6 +5,7 @@ import org.example.monitoringservice.dto.request.ReadingDto;
 import org.example.monitoringservice.mapper.ReadingMapper;
 import org.example.monitoringservice.model.reading.Reading;
 import org.example.monitoringservice.dto.response.Response;
+import org.example.monitoringservice.model.reading.ReadingType;
 import org.example.monitoringservice.service.ReadingService;
 import org.example.monitoringservice.util.UserContext;
 
@@ -44,9 +45,9 @@ public class ReadingController {
                 UserContext.getCurrentUser().getEmail(), monthNumber), readingsByMonth);
     }
 
-    public Response addNewReadingType(String newReadingType) {
-        readingService.addNewReadingType(newReadingType);
+    public Response addNewReadingType(ReadingType readingType) {
+        readingService.addNewReadingType(readingType);
         return new Response(MessageFormat.format("Пользователь {0} добавил новый тип показаний {1}",
-                UserContext.getCurrentUser().getEmail(), newReadingType));
+                UserContext.getCurrentUser().getEmail(), readingType.getType()));
     }
 }
