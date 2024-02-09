@@ -17,6 +17,7 @@ public class User {
     @Builder.Default
     private UUID personalAccount = UUID.randomUUID();
     private String email;
+    private String password;
     private RoleType role;
     @Builder.Default
     private Instant registrationDate = Instant.now();

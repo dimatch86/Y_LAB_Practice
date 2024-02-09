@@ -1,0 +1,14 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: monitoring_service_database
+    ports:
+      - 5434:5432
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ylab_user
+      POSTGRES_PASSWORD: ylab_password
+      POSTGRES_DB: monitoring_service_db
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -1,4 +1,4 @@
-package org.example.monitoringservice.dto;
+package org.example.monitoringservice.dto.request;
 
 import lombok.Builder;
 import lombok.Data;

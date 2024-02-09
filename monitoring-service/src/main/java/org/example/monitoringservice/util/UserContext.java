@@ -34,4 +34,12 @@ public class UserContext {
         }
         return false;
     }
+
+    public boolean isEntered() {
+        if (currentUser != null) {
+            System.out.println("Вход в аккаунт уже выполнен");
+            return true;
+        }
+        return false;
+    }
 }

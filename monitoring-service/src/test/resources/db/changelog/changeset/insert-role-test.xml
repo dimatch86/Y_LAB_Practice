@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="insert-role-test" author="dimatch86">
+        <insert tableName="role" schemaName="monitoring_service_schema">
+            <column name="id" value="1"/>
+            <column name="role_type" value="USER"/>
+            <column name="description" value="Подача показаний, просмотр только соих показаний"/>
+        </insert>
+        <insert tableName="role" schemaName="monitoring_service_schema">
+            <column name="id" value="2"/>
+            <column name="role_type" value="ADMIN"/>
+            <column name="description" value="Подача показаний, просмотр показаний всех пользователей, добавление нового типа показаний, аудит действий пользователей"/>
+        </insert>
+
+
+    </changeSet>
+</databaseChangeLog>
