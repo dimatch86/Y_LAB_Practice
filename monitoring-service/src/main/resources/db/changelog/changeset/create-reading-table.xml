@@ -5,7 +5,7 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="create-reading" author="dimatch86">
-        <createTable tableName="reading" schemaName="monitoring_service_schema">
+        <createTable tableName="reading">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

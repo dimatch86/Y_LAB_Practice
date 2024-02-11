@@ -1,7 +1,5 @@
 package org.example.monitoringservice.repository;
 
-import org.example.monitoringservice.exception.NotAvailableReadingException;
-import org.example.monitoringservice.exception.TooRecentReadingException;
 import org.example.monitoringservice.model.reading.Reading;
 import org.example.monitoringservice.model.reading.ReadingType;
 import org.example.monitoringservice.model.user.RoleType;
@@ -10,7 +8,10 @@ import org.example.monitoringservice.util.UserContext;
 import org.junit.jupiter.api.Test;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -18,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DbReadingRepositoryTest extends AbstractTest {
@@ -26,9 +28,7 @@ class DbReadingRepositoryTest extends AbstractTest {
 
     @Test
     void testSaveReading() throws Exception {
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        String username = postgreSQLContainer.getUsername();
-        String password = postgreSQLContainer.getPassword();
+
         UUID personalAccount = UUID.randomUUID();
 
         Reading newReading = new Reading(25.25, personalAccount, "ГОРЯЧАЯ ВОДА", Instant.now());
@@ -37,7 +37,7 @@ class DbReadingRepositoryTest extends AbstractTest {
 
         UserContext.setCurrentUser(user);
 
-        readingRepository.saveReading(newReading);
+        readingRepository.save(newReading);
 
         try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
 
@@ -46,42 +46,8 @@ class DbReadingRepositoryTest extends AbstractTest {
             statement.setString(1, String.valueOf(personalAccount));
             ResultSet rs = statement.executeQuery();
             rs.next();
-            assertEquals(25.25, rs.getDouble("reading_value"));
+            assertThat(rs.getDouble("reading_value")).isEqualTo(25.25);
         }
-    }
-
-    @Test
-    void saveReading_whenReadingIsTooRecent_expectExceptionThrown() {
-
-        UUID personalAccount = UUID.randomUUID();
-
-        Reading reading = new Reading(25.25, personalAccount, "ГОРЯЧАЯ ВОДА", Instant.now());
-
-        User user = new User(personalAccount, "diman@mail.ru", BCrypt.hashpw("userPassword", BCrypt.gensalt()), RoleType.USER, Instant.now());
-
-        UserContext.setCurrentUser(user);
-
-        readingRepository.saveReading(reading);
-
-        Reading newReading = new Reading(44.25, personalAccount, "ГОРЯЧАЯ ВОДА", Instant.now());
-
-        TooRecentReadingException exception = assertThrows(TooRecentReadingException.class, () -> readingRepository.saveReading(newReading));
-        assertEquals("Показания передаются раз в месяц!", exception.getMessage());
-    }
-
-    @Test
-    void saveReading_whenReadingWithNotAvailableType_expectExceptionThrown() {
-
-        UUID personalAccount = UUID.randomUUID();
-
-        User user = new User(personalAccount, "diman@mail.ru", BCrypt.hashpw("userPassword", BCrypt.gensalt()), RoleType.USER, Instant.now());
-
-        UserContext.setCurrentUser(user);
-
-        Reading notAvailableReading = new Reading(25.25, personalAccount, "ЭЛЕКТРИЧЕСТВО", Instant.now());
-
-        NotAvailableReadingException exception = assertThrows(NotAvailableReadingException.class, () -> readingRepository.saveReading(notAvailableReading));
-        assertEquals("Не поддерживаемый тип показаний. В настоящее время доступны: [ГОРЯЧАЯ ВОДА, ХОЛОДНАЯ ВОДА, ОТОПЛЕНИЕ]", exception.getMessage());
     }
 
     @Test
@@ -120,17 +86,17 @@ class DbReadingRepositoryTest extends AbstractTest {
         Reading oldColdWaterReading = new Reading(13.25, personalAccount, "ХОЛОДНАЯ ВОДА",
                 Instant.now().minus(40, ChronoUnit.DAYS));
 
-        readingRepository.saveReading(oldColdWaterReading);
-        readingRepository.saveReading(oldHotWaterReading);
+        readingRepository.save(oldColdWaterReading);
+        readingRepository.save(oldHotWaterReading);
 
         Reading newHotWaterReading = new Reading(15.25, personalAccount, "ГОРЯЧАЯ ВОДА", Instant.now());
         Reading newColdWaterReading = new Reading(16.25, personalAccount, "ХОЛОДНАЯ ВОДА", Instant.now());
 
-        readingRepository.saveReading(newColdWaterReading);
-        readingRepository.saveReading(newHotWaterReading);
+        readingRepository.save(newColdWaterReading);
+        readingRepository.save(newHotWaterReading);
 
         List<Reading> actualReadings = readingRepository.findActualReadings();
-        assertEquals(2, actualReadings.size());
+        assertThat(actualReadings).hasSize(2);
     }
 
     @Test
@@ -150,17 +116,17 @@ class DbReadingRepositoryTest extends AbstractTest {
 
 
         UserContext.setCurrentUser(user);
-        readingRepository.saveReading(usersReading);
+        readingRepository.save(usersReading);
 
         UserContext.setCurrentUser(otherUser);
-        readingRepository.saveReading(someOneReading);
+        readingRepository.save(someOneReading);
 
         UserContext.setCurrentUser(user);
 
         List<Reading> actualReadings = readingRepository.findActualReadings();
 
-        assertEquals(1, actualReadings.size());
-        assertEquals(actualReadings.get(0).getPersonalAccount(), personalAccount);
+        assertThat(actualReadings).hasSize(1);
+        assertThat(personalAccount).isEqualTo(actualReadings.get(0).getPersonalAccount());
     }
 
     @Test
@@ -180,16 +146,16 @@ class DbReadingRepositoryTest extends AbstractTest {
 
 
         UserContext.setCurrentUser(user);
-        readingRepository.saveReading(usersReading);
+        readingRepository.save(usersReading);
 
         UserContext.setCurrentUser(admin);
-        readingRepository.saveReading(adminReading);
+        readingRepository.save(adminReading);
 
         List<Reading> actualReadings = readingRepository.findActualReadings();
-
-        assertEquals(2, actualReadings.size());
         List<UUID> accounts = actualReadings.stream().map(Reading::getPersonalAccount).toList();
-        assertTrue(accounts.containsAll(List.of(userPersonalAccount, adminPersonalAccount)));
+
+        assertThat(actualReadings).hasSize(2);
+        assertThat(accounts).containsAll(List.of(userPersonalAccount, adminPersonalAccount));
     }
 
     @Test
@@ -213,12 +179,12 @@ class DbReadingRepositoryTest extends AbstractTest {
         Reading heatingReadingMonth2 = new Reading(15.25, userPersonalAccount, "ОТОПЛЕНИЕ", dateWithMonth2);
 
         UserContext.setCurrentUser(user);
-        readingRepository.saveReading(hotWaterReadingMonth1);
-        readingRepository.saveReading(heatingReadingMonth2);
+        readingRepository.save(hotWaterReadingMonth1);
+        readingRepository.save(heatingReadingMonth2);
 
         UserContext.setCurrentUser(admin);
-        readingRepository.saveReading(coldWaterReadingMonth1);
-        readingRepository.saveReading(hotWaterReadingMonth2);
+        readingRepository.save(coldWaterReadingMonth1);
+        readingRepository.save(hotWaterReadingMonth2);
 
         LocalDateTime localDateTime = LocalDateTime.ofInstant(dateWithMonth1, ZoneId.systemDefault());
         int month = localDateTime.getMonthValue();
@@ -226,8 +192,8 @@ class DbReadingRepositoryTest extends AbstractTest {
         UserContext.setCurrentUser(user);
         List<Reading> result = readingRepository.findReadingsByMonth(String.valueOf(month));
 
-        assertEquals(1, result.size());
-        assertEquals(hotWaterReadingMonth1.getPersonalAccount(), result.get(0).getPersonalAccount());
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getPersonalAccount()).isEqualTo(hotWaterReadingMonth1.getPersonalAccount());
     }
 
     @Test
@@ -251,12 +217,12 @@ class DbReadingRepositoryTest extends AbstractTest {
         Reading heatingReadingMonth2 = new Reading(15.25, userPersonalAccount, "ОТОПЛЕНИЕ", dateWithMonth2);
 
         UserContext.setCurrentUser(user);
-        readingRepository.saveReading(hotWaterReadingMonth1);
-        readingRepository.saveReading(heatingReadingMonth2);
+        readingRepository.save(hotWaterReadingMonth1);
+        readingRepository.save(heatingReadingMonth2);
 
         UserContext.setCurrentUser(admin);
-        readingRepository.saveReading(coldWaterReadingMonth1);
-        readingRepository.saveReading(hotWaterReadingMonth2);
+        readingRepository.save(coldWaterReadingMonth1);
+        readingRepository.save(hotWaterReadingMonth2);
 
         LocalDateTime localDateTime = LocalDateTime.ofInstant(dateWithMonth1, ZoneId.systemDefault());
         int month = localDateTime.getMonthValue();
@@ -264,8 +230,8 @@ class DbReadingRepositoryTest extends AbstractTest {
         UserContext.setCurrentUser(admin);
         List<Reading> result = readingRepository.findReadingsByMonth(String.valueOf(month));
 
-        assertEquals(2, result.size());
-        assertEquals(result.get(0).getPersonalAccount(), userPersonalAccount);
-        assertEquals(result.get(1).getPersonalAccount(), adminPersonalAccount);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getPersonalAccount()).isEqualTo(userPersonalAccount);
+        assertThat(result.get(1).getPersonalAccount()).isEqualTo(adminPersonalAccount);
     }
 }

@@ -2,14 +2,16 @@ package org.example.monitoringservice.in.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.monitoringservice.dto.request.ReadingDto;
+import org.example.monitoringservice.dto.request.ReadingTypeDto;
+import org.example.monitoringservice.dto.response.ReadingResponse;
+import org.example.monitoringservice.dto.response.ResponseEntity;
 import org.example.monitoringservice.mapper.ReadingMapper;
+import org.example.monitoringservice.mapper.ReadingTypeMapper;
 import org.example.monitoringservice.model.reading.Reading;
-import org.example.monitoringservice.dto.response.Response;
 import org.example.monitoringservice.model.reading.ReadingType;
 import org.example.monitoringservice.service.ReadingService;
-import org.example.monitoringservice.util.UserContext;
+import org.example.monitoringservice.util.ResponseUtil;
 
-import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -19,35 +21,55 @@ import java.util.List;
 public class ReadingController {
 
     private final ReadingService readingService;
-    private final ReadingMapper readingMapper = new ReadingMapper();
 
-    public Response sendReading(ReadingDto readingDto) {
-        readingService.send(readingMapper.readingDtoToReading(readingDto));
-        return new Response(MessageFormat.format("Пользователь {0} отправил показания",
-                UserContext.getCurrentUser().getEmail()));
+    /**
+     * Endpoint for sending reading data.
+     * @param readingDto the reading data to be sent
+     * @return a ResponseEntity with a success message
+     */
+    public ResponseEntity<Object> sendReading(ReadingDto readingDto) {
+        readingService.send(ReadingMapper.READING_MAPPER.readingDtoToReading(readingDto));
+        return ResponseUtil.okResponse("Показания успешно отправлены");
     }
 
-    public Response getActualReadings() {
-        List<Reading> actualReadings = readingService.getActualReadings();
-        return new Response(MessageFormat.format("Пользователь {0} запросил актуальные показания",
-                UserContext.getCurrentUser().getEmail()), actualReadings);
+    /**
+     * Endpoint for retrieving actual readings.
+     * @return a ResponseEntity containing the actual readings
+     */
+    public ResponseEntity<List<ReadingResponse>> getActualReadings() {
+        return ResponseUtil.okResponseWithData(ReadingMapper.READING_MAPPER
+                .readingListToResponseLIst(readingService.getActualReadings()));
     }
 
-    public Response getHistoryOfReadings() {
-        List<Reading> history = readingService.getHistoryOfReadings();
-        return new Response(MessageFormat.format("Пользователь {0} запросил историю показаний",
-                UserContext.getCurrentUser().getEmail()), history);
+    /**
+     * Endpoint for retrieving the history of readings.
+     * @return a ResponseEntity containing the history of readings
+     */
+    public ResponseEntity<List<ReadingResponse>> getHistoryOfReadings() {
+        return ResponseUtil.okResponseWithData(ReadingMapper.READING_MAPPER
+                .readingListToResponseLIst(readingService.getHistoryOfReadings()));
     }
 
-    public Response getReadingsByMonth(String monthNumber) {
+    /**
+     * Endpoint for retrieving readings by month.
+     * @param monthNumber the number of the month for which readings are to be retrieved
+     * @return a ResponseEntity containing the readings for the specified month
+     */
+    public ResponseEntity<List<ReadingResponse>> getReadingsByMonth(String monthNumber) {
         List<Reading> readingsByMonth = readingService.getReadingsByMonth(monthNumber);
-        return new Response(MessageFormat.format("Пользователь {0} запросил показания за {1}",
-                UserContext.getCurrentUser().getEmail(), monthNumber), readingsByMonth);
+        return ResponseUtil.okResponseWithData(ReadingMapper.READING_MAPPER
+                .readingListToResponseLIst(readingsByMonth));
     }
 
-    public Response addNewReadingType(ReadingType readingType) {
+    /**
+     * Endpoint for adding a new reading type.
+     * @param readingTypeDto the information of the reading type to be added
+     * @return a ResponseEntity with a success message
+     */
+    public ResponseEntity<Object> addNewReadingType(ReadingTypeDto readingTypeDto) {
+        ReadingType readingType = ReadingTypeMapper.READING_TYPE_MAPPER
+                .readingTypeDtoToReadingType(readingTypeDto);
         readingService.addNewReadingType(readingType);
-        return new Response(MessageFormat.format("Пользователь {0} добавил новый тип показаний {1}",
-                UserContext.getCurrentUser().getEmail(), readingType.getType()));
+        return ResponseUtil.okResponse("Новый тип показаний сохранен");
     }
 }

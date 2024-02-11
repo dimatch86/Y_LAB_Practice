@@ -5,15 +5,15 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="insert-available-readings" author="dimatch86">
-        <insert tableName="available_reading" schemaName="monitoring_service_schema">
+        <insert tableName="available_reading">
             <column name="id" value="1"/>
             <column name="type" value="ГОРЯЧАЯ ВОДА"/>
         </insert>
-        <insert tableName="available_reading" schemaName="monitoring_service_schema">
+        <insert tableName="available_reading">
             <column name="id" value="2"/>
             <column name="type" value="ХОЛОДНАЯ ВОДА"/>
         </insert>
-        <insert tableName="available_reading" schemaName="monitoring_service_schema">
+        <insert tableName="available_reading">
             <column name="id" value="3"/>
             <column name="type" value="ОТОПЛЕНИЕ"/>
         </insert>

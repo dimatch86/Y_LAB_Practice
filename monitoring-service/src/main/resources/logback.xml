@@ -1,17 +1,16 @@
 <configuration>
-    <timestamp key="byStartDate" datePattern="yyyy-MM-dd'_'HH-mm-ss.SSS"/>
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/app_${byStartDate}.log</file>
-        <encoder>
-            <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+        </layout>
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="Console"/>
     </root>
 
     <logger name="monitoring-service-logger" level="INFO" additivity="false">
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="Console"/>
     </logger>
 </configuration>
