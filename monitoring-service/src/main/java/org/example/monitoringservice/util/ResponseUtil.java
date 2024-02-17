@@ -1,7 +1,8 @@
 package org.example.monitoringservice.util;
 
 import lombok.experimental.UtilityClass;
-import org.example.monitoringservice.dto.response.ResponseEntity;
+import org.example.monitoringservice.dto.response.ResponseDto;
+
 /**
  * Utility class for constructing response objects.
  */
@@ -14,8 +15,8 @@ public class ResponseUtil {
      * @param t the data to be included in the response
      * @return a response entity with the provided data
      */
-    public <T> ResponseEntity<T> okResponseWithData(T t) {
-        return ResponseEntity.<T>builder()
+    public <T> ResponseDto<T> okResponseWithData(T t) {
+        return ResponseDto.<T>builder()
                 .data(t).build();
     }
 
@@ -24,9 +25,10 @@ public class ResponseUtil {
      * @param okMessage the success message
      * @return a response entity with the success message
      */
-    public ResponseEntity<Object> okResponse(String okMessage) {
-        return ResponseEntity.builder()
-                .data(okMessage).build();
+    public ResponseDto<Object> okResponse(String okMessage) {
+        return ResponseDto.builder()
+                .message(okMessage)
+                .build();
     }
 
     /**
@@ -34,8 +36,8 @@ public class ResponseUtil {
      * @param errorMessage the error message
      * @return a response entity with the error message
      */
-    public ResponseEntity<Object> errorResponse(String errorMessage) {
-        return ResponseEntity.builder()
+    public ResponseDto<Object> errorResponse(String errorMessage) {
+        return ResponseDto.builder()
                 .error(errorMessage)
                 .build();
     }

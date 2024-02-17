@@ -1,7 +1,6 @@
 package org.example.monitoringservice.service;
 
 import org.example.monitoringservice.model.reading.Reading;
-import org.example.monitoringservice.model.reading.ReadingType;
 
 import java.util.List;
 /**
@@ -32,11 +31,5 @@ public interface ReadingService {
      * @param month the month for which to retrieve readings
      * @return a list of readings for the specified month
      */
-    List<Reading> getReadingsByMonth(String month);
-
-    /**
-     * Adds a new reading type.
-     * @param readingType the reading type to be added
-     */
-    void addNewReadingType(ReadingType readingType);
+    List<Reading> getReadingsByMonth(int month);
 }

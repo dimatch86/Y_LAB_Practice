@@ -6,7 +6,7 @@ import org.example.monitoringservice.exception.custom.UserAlreadyExistException;
 import org.example.monitoringservice.exception.custom.UserNotFoundException;
 import org.example.monitoringservice.model.user.RoleType;
 import org.example.monitoringservice.model.user.User;
-import org.example.monitoringservice.repository.DbUserRepository;
+import org.example.monitoringservice.repository.UserRepositoryImpl;
 import org.example.monitoringservice.util.UserContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 
 class AuthenticationServiceTest {
 
-    private final DbUserRepository userRepository = mock(DbUserRepository.class);
+    private final UserRepositoryImpl userRepository = mock(UserRepositoryImpl.class);
     private final AuthenticationService authenticationService = new AuthenticationServiceImpl(userRepository);
     User currentUser;
     User newUser;

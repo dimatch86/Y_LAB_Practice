@@ -1,14 +1,9 @@
 package org.example.monitoringservice.service;
 
 import org.example.monitoringservice.exception.custom.NotAvailableReadingException;
-import org.example.monitoringservice.exception.custom.ReadingTypeAlreadyExistsException;
 import org.example.monitoringservice.exception.custom.TooRecentReadingException;
 import org.example.monitoringservice.model.reading.Reading;
-import org.example.monitoringservice.model.reading.ReadingType;
-import org.example.monitoringservice.model.user.RoleType;
-import org.example.monitoringservice.model.user.User;
-import org.example.monitoringservice.repository.DbReadingRepository;
-import org.example.monitoringservice.util.UserContext;
+import org.example.monitoringservice.repository.ReadingRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,11 +13,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ReadingServiceTest {
 
-    private final DbReadingRepository readingRepository = mock(DbReadingRepository.class);
+    private final ReadingRepositoryImpl readingRepository = mock(ReadingRepositoryImpl.class);
     private final ReadingServiceImpl readingService = new ReadingServiceImpl(readingRepository);
     private UUID personalAccount;
 
@@ -57,30 +53,5 @@ class ReadingServiceTest {
         assertThatThrownBy(() -> readingService.send(newReading))
                 .isInstanceOf(NotAvailableReadingException.class)
                 .hasMessageContaining("Не поддерживаемый тип показаний. В настоящее время доступны:");
-    }
-
-    @Test
-    void addNewReadingType_whenAddNotExistingReadingType_thenCallsSaveNewReadingType() {
-
-        ReadingType notExistingReadingType = new ReadingType("ГАЗ");
-        when(readingRepository.findAvailableReadingByType(notExistingReadingType.getType()))
-                .thenReturn(Optional.empty());
-        readingService.addNewReadingType(notExistingReadingType);
-        verify(readingRepository, times(1))
-                .saveNewReadingType(notExistingReadingType);
-    }
-
-    @Test
-    void addNewReadingType_whenAddExistingReadingType_expectExceptionThrown() {
-
-        ReadingType existingReadingType = new ReadingType("ГАЗ");
-        when(readingRepository.findAvailableReadingByType("ГАЗ"))
-                .thenReturn(Optional.of(existingReadingType));
-
-        assertThatThrownBy(() -> readingService.addNewReadingType(existingReadingType))
-                .isInstanceOf(ReadingTypeAlreadyExistsException.class)
-                .hasMessage("Тип показаний ГАЗ уже существует в базе");
-        verify(readingRepository, times(0))
-                .saveNewReadingType(any());
     }
 }

@@ -1,6 +1,7 @@
 package org.example.monitoringservice.model.reading;
 
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,12 +14,13 @@ import java.util.UUID;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldNameConstants
 public class Reading {
 
     /**
      * The value of the reading.
      */
-    private Double value;
+    private Double readingValue;
 
     /**
      * The personal account UUID associated with the reading.

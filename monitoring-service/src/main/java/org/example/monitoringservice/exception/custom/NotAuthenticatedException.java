@@ -8,9 +8,9 @@ import org.example.monitoringservice.exception.CustomException;
 public class NotAuthenticatedException extends CustomException {
     /**
      * Constructs a new NotAuthenticatedException with the specified detail message.
-     * @param message the detail message
+     *
      */
-    public NotAuthenticatedException(String message) {
-        super(message);
+    public NotAuthenticatedException() {
+        super("Вы не авторизованы. Выполните вход в ваш аккаунт");
     }
 }

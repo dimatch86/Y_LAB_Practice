@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.monitoringservice.util.UserContext;
+import lombok.experimental.FieldNameConstants;
 
 import java.time.Instant;
 /**
@@ -16,6 +16,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@FieldNameConstants
 public class Action {
 
     private String actionMethod;
@@ -23,8 +24,7 @@ public class Action {
     /**
      * The user who performed the action. Defaults to the current user's email in UserContext.
      */
-    @Builder.Default
-    private String actionedBy = UserContext.getCurrentUser().getEmail();
+    private String actionedBy;
 
     /**
      * The time when the action was created. Defaults to the current time.

@@ -18,5 +18,5 @@ public interface AuditService {
      * Retrieves a list of all audit actions from the audit log.
      * @return A list of Action objects representing the audit actions.
      */
-    List<Action> auditActions();
+    List<Action> getUsersActions();
 }

@@ -1,43 +1,36 @@
 package org.example.monitoringservice.aop;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.example.monitoringservice.configuration.AppPropertiesProvider;
-import org.example.monitoringservice.configuration.AppProps;
-import org.example.monitoringservice.factory.AuditComponentFactory;
-import org.example.monitoringservice.factory.AuditComponentFactoryImpl;
 import org.example.monitoringservice.model.audit.Action;
 import org.example.monitoringservice.service.AuditService;
+import org.example.monitoringservice.util.UserContext;
+import org.springframework.stereotype.Component;
 
 @Aspect
+@Component
 @Slf4j
+@RequiredArgsConstructor
 public class AuditableAspect {
 
-    private AuditService auditService;
+    private final AuditService auditService;
 
-    @Pointcut("@annotation(org.example.monitoringservice.aop.Auditable) && execution(* *(..))")
-    public void annotatedByAuditable() {}
+    @Pointcut("@within(org.example.monitoringservice.aop.Auditable)")
+    public void auditablePointcut() {}
 
-    @Around("annotatedByAuditable()")
-    public Object audit(ProceedingJoinPoint joinPoint) throws Throwable {
+    @AfterReturning("auditablePointcut()")
+    public void auditableAdvice(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
-        long start = System.currentTimeMillis();
-        Object result = joinPoint.proceed();
-        long end = System.currentTimeMillis() - start;
-        log.info("Execution of method {} finished. Execution time is {} ms.", methodName, end);
-        Action action = Action.builder().actionMethod(methodName).build();
-        init();
+        Action action = Action.builder()
+                .actionMethod(methodName)
+                .actionedBy(UserContext.getCurrentUser() != null ?
+                        UserContext.getCurrentUser().getEmail() : "NotDefinedUser")
+                .build();
         auditService.saveAction(action);
-        return result;
-    }
-
-    private void init() {
-        AppProps appProps = AppPropertiesProvider.getProperties();
-        AuditComponentFactory auditComponentFactory =
-                new AuditComponentFactoryImpl(appProps.getUrl(), appProps.getUserName(), appProps.getPassword());
-        auditService = auditComponentFactory.createAuditService();
+        log.info("Audit aspect has been executed");
     }
 }

@@ -3,6 +3,7 @@ package org.example.monitoringservice.service;
 import lombok.RequiredArgsConstructor;
 import org.example.monitoringservice.model.audit.Action;
 import org.example.monitoringservice.repository.ActionRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 /**
@@ -10,6 +11,7 @@ import java.util.List;
  * and provides methods for saving and retrieving audit actions.
  */
 @RequiredArgsConstructor
+@Service
 public class AuditServiceImpl implements AuditService {
 
     private final ActionRepository actionRepository;
@@ -29,7 +31,7 @@ public class AuditServiceImpl implements AuditService {
      * @return A list of Action objects representing the audit actions.
      */
     @Override
-    public List<Action> auditActions() {
+    public List<Action> getUsersActions() {
         return actionRepository.findAllActions();
     }
 }

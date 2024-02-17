@@ -6,9 +6,12 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.example.monitoringservice.util.UserContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -25,8 +28,11 @@ abstract class AbstractTest {
     private static final String DB_NAME = "test";
     private static final String DB_USER = "test";
     private static final String DB_PASSWORD = "test";
-    protected DbReadingRepository readingRepository;
-    protected DbUserRepository userRepository;
+    private static DriverManagerDataSource dataSource;
+    private static JdbcTemplate jdbcTemplate;
+    protected ReadingRepository readingRepository;
+    protected ReadingTypeRepository readingTypeRepository;
+    protected UserRepository userRepository;
     public static String jdbcUrl;
     public static String username;
     public static String password;
@@ -44,24 +50,29 @@ abstract class AbstractTest {
         jdbcUrl = postgreSQLContainer.getJdbcUrl();
         username = postgreSQLContainer.getUsername();
         password = postgreSQLContainer.getPassword();
+
+        dataSource = new DriverManagerDataSource();
+        dataSource.setUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        jdbcTemplate = new JdbcTemplate(dataSource);
+
         createTestData(jdbcUrl, username, password);
     }
 
 
     @BeforeEach
     public void setUp() {
-        userRepository = new DbUserRepository(jdbcUrl, username, password);
-        readingRepository = new DbReadingRepository(jdbcUrl, username, password);
+        userRepository = new UserRepositoryImpl(jdbcTemplate);
+        readingRepository = new ReadingRepositoryImpl(jdbcTemplate);
+        readingTypeRepository = new ReadingTypeRepositoryImpl(jdbcTemplate);
     }
 
     @AfterEach
     public void cleanDatabase() {
-        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
-            Statement statement = connection.createStatement();
-            statement.executeUpdate("DELETE FROM monitoring_service_schema.user");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        UserContext.setCurrentUser(null);
+        jdbcTemplate.update("DELETE FROM monitoring_service_schema.user");
     }
 
 
