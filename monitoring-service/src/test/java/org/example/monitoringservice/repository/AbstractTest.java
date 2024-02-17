@@ -6,6 +6,7 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -26,6 +27,9 @@ abstract class AbstractTest {
     private static final String DB_PASSWORD = "test";
     protected DbReadingRepository readingRepository;
     protected DbUserRepository userRepository;
+    public static String jdbcUrl;
+    public static String username;
+    public static String password;
 
     @Container
     protected static final PostgreSQLContainer<?> postgreSQLContainer =
@@ -37,20 +41,27 @@ abstract class AbstractTest {
     @BeforeAll
     static void init() {
         postgreSQLContainer.start();
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        String username = postgreSQLContainer.getUsername();
-        String password = postgreSQLContainer.getPassword();
+        jdbcUrl = postgreSQLContainer.getJdbcUrl();
+        username = postgreSQLContainer.getUsername();
+        password = postgreSQLContainer.getPassword();
         createTestData(jdbcUrl, username, password);
     }
 
 
     @BeforeEach
     public void setUp() {
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        String username = postgreSQLContainer.getUsername();
-        String password = postgreSQLContainer.getPassword();
         userRepository = new DbUserRepository(jdbcUrl, username, password);
         readingRepository = new DbReadingRepository(jdbcUrl, username, password);
+    }
+
+    @AfterEach
+    public void cleanDatabase() {
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
+            Statement statement = connection.createStatement();
+            statement.executeUpdate("DELETE FROM monitoring_service_schema.user");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -59,9 +70,13 @@ abstract class AbstractTest {
         try(Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
             Statement stmt = connection.createStatement()) {
             stmt.execute("CREATE SEQUENCE jdbc_sequence START 101");
+            stmt.execute("CREATE SCHEMA IF NOT EXISTS data_changelog_schema;");
+            stmt.execute("CREATE SCHEMA IF NOT EXISTS monitoring_service_schema;");
             Database db = DatabaseFactory.getInstance()
                     .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            Liquibase liquibase = new Liquibase("db/changelog/changelog.xml",
+            db.setDefaultSchemaName("monitoring_service_schema");
+            db.setLiquibaseSchemaName("data_changelog_schema");
+            Liquibase liquibase = new Liquibase("db/changelog/changelog-master.xml",
                     new ClassLoaderResourceAccessor(), db);
             liquibase.update();
 

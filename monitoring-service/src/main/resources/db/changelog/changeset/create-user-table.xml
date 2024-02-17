@@ -5,7 +5,7 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="create-user-table" author="dimatch86">
-        <createTable tableName="user" schemaName="monitoring_service_schema">
+        <createTable tableName="user" >
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -15,7 +15,7 @@
             <column name="password" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="role_id" type="int">
+            <column name="role" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="personal_account" type="varchar(255)">

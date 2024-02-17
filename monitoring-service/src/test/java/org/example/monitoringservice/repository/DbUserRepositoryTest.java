@@ -11,8 +11,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DbUserRepositoryTest extends AbstractTest {
 
@@ -20,31 +20,22 @@ class DbUserRepositoryTest extends AbstractTest {
 
     @BeforeEach
     public void setUp() {
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        String username = postgreSQLContainer.getUsername();
-        String password = postgreSQLContainer.getPassword();
         userRepository = new DbUserRepository(jdbcUrl, username, password);
     }
 
     @Test
     void testDatabaseConnection() throws Exception {
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        String username = postgreSQLContainer.getUsername();
-        String password = postgreSQLContainer.getPassword();
         try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password)) {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT 1");
             rs.next();
             int result = rs.getInt(1);
-            assertEquals(1, result);
+            assertThat(result).isEqualTo(1);
         }
     }
 
     @Test
     void testSaveUser() throws Exception {
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        String username = postgreSQLContainer.getUsername();
-        String password = postgreSQLContainer.getPassword();
 
         UUID personalAccount = UUID.randomUUID();
 
@@ -58,7 +49,7 @@ class DbUserRepositoryTest extends AbstractTest {
             statement.setString(1, "diman@mail.ru");
             ResultSet rs = statement.executeQuery();
             rs.next();
-            assertEquals("diman@mail.ru", rs.getString("email"));
+            assertThat(rs.getString("email")).isEqualTo("diman@mail.ru");
         }
     }
 
@@ -73,6 +64,6 @@ class DbUserRepositoryTest extends AbstractTest {
 
         Optional<User> findUser = userRepository.findByEmail("diman@mail.ru");
         assertTrue(findUser.isPresent());
-        assertEquals("diman@mail.ru", findUser.get().getEmail());
+        assertThat(findUser.get().getEmail()).isEqualTo("diman@mail.ru");
     }
 }

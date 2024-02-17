@@ -1,8 +1,7 @@
 package org.example.monitoringservice.repository;
 
 import lombok.RequiredArgsConstructor;
-import org.example.monitoringservice.exception.DbException;
-import org.example.monitoringservice.exception.UserAlreadyExistException;
+import org.example.monitoringservice.exception.custom.DbException;
 import org.example.monitoringservice.model.user.RoleType;
 import org.example.monitoringservice.model.user.User;
 
@@ -11,16 +10,32 @@ import java.text.MessageFormat;
 import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
-
+/**
+ * Implementation of the UserRepository interface that interacts with a database.
+ */
 @RequiredArgsConstructor
 public class DbUserRepository implements UserRepository {
+    /**
+     * The URL for accessing the repository.
+     */
     private final String url;
+    /**
+     * The username for accessing the repository.
+     */
     private final String userName;
+    /**
+     * The password for accessing the repository.
+     */
     private final String userPassword;
+
+    /**
+     * This method saves the user information into the database.
+     * @param user The User object containing the user information.
+     */
     @Override
     public void saveUser(User user) {
         String sql = "INSERT INTO monitoring_service_schema.user " +
-                "(id, email, password, role_id, personal_account, registration_date) " +
+                "(id, email, password, role, personal_account, registration_date) " +
                 "VALUES (NEXTVAL('jdbc_sequence'), ?, ?, ?, ?, ?)";
         Connection connection = null;
         try {
@@ -29,7 +44,7 @@ public class DbUserRepository implements UserRepository {
             try (PreparedStatement preparedStatement = DriverManager.getConnection(url, userName, userPassword).prepareStatement(sql)){
                 preparedStatement.setString(1, user.getEmail());
                 preparedStatement.setString(2, user.getPassword());
-                preparedStatement.setInt(3, getRoleIdByRole(user.getRole().toString()));
+                preparedStatement.setString(3, user.getRole().toString());
                 preparedStatement.setString(4, user.getPersonalAccount().toString());
                 preparedStatement.setTimestamp(5, java.sql.Timestamp.from(user.getRegistrationDate()));
 
@@ -45,8 +60,6 @@ public class DbUserRepository implements UserRepository {
                     System.out.println(ex.getLocalizedMessage());
                 }
             }
-            throw new DbException(MessageFormat
-                    .format("Ошибка базы данных: {0}", e.getLocalizedMessage()));
 
         } finally {
             if (connection != null) {
@@ -59,6 +72,11 @@ public class DbUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * This method finds a user by their email in the database.
+     * @param userEmail The email of the user to be found.
+     * @return An Optional containing the user if found, or an empty Optional if not found.
+     */
     @Override
     public Optional<User> findByEmail(String userEmail) {
         Optional<User> user = Optional.empty();
@@ -72,7 +90,7 @@ public class DbUserRepository implements UserRepository {
                             UUID.fromString(resultSet.getString("personal_account")),
                             resultSet.getString("email"),
                             resultSet.getString("password"),
-                            RoleType.valueOf(getRoleByRoleId(resultSet.getInt("role_id"))),
+                            RoleType.valueOf(resultSet.getString("role")),
                             resultSet.getDate("registration_date").toLocalDate()
                                     .atStartOfDay(ZoneId.systemDefault()).toInstant())
                     );
@@ -84,58 +102,4 @@ public class DbUserRepository implements UserRepository {
         }
         return user;
     }
-
-    @Override
-    public String getAuthorityInfo(String roleType) {
-        String authority = "";
-        String sql = "SELECT description FROM monitoring_service_schema.role r " +
-                "WHERE r.role_type = ?";
-        try (PreparedStatement statement = DriverManager.getConnection(url, userName, userPassword).prepareStatement(sql)) {
-            statement.setString(1, roleType);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    authority = resultSet.getString("description");
-                }
-            }
-        } catch (SQLException e) {
-            throw new DbException(MessageFormat
-                    .format("Ошибка базы данных: {0}", e.getLocalizedMessage()));
-        }
-        return authority;
-    }
-
-    private String getRoleByRoleId(int roleId) {
-        String role = "";
-        String sql = "SELECT role_type FROM monitoring_service_schema.role r " +
-                "WHERE r.id = ?";
-        try (PreparedStatement statement = DriverManager.getConnection(url, userName, userPassword).prepareStatement(sql)) {
-            statement.setInt(1, roleId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    role = resultSet.getString("role_type");
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getLocalizedMessage());
-        }
-        return role;
-    }
-
-    private int getRoleIdByRole(String role) {
-        int roleId = 0;
-        String sql = "SELECT id FROM monitoring_service_schema.role r" +
-                " WHERE r.role_type = ?";
-        try (PreparedStatement statement = DriverManager.getConnection(url, userName, userPassword).prepareStatement(sql)) {
-            statement.setString(1, role);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    roleId = resultSet.getInt("id");
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getLocalizedMessage());
-        }
-        return roleId;
-    }
-
 }

@@ -11,35 +11,35 @@ import org.example.monitoringservice.model.user.User;
 public class UserContext {
     private User currentUser;
 
+    /**
+     * Sets the current user.
+     * @param user the user to be set as the current user
+     */
     public void setCurrentUser(User user) {
         currentUser = user;
     }
 
+    /**
+     * Retrieves the current user.
+     * @return the current user
+     */
     public User getCurrentUser() {
         return currentUser;
     }
 
+    /**
+     * Checks if the user is not authenticated.
+     * @return true if the user is not authenticated, false otherwise
+     */
     public boolean isNotAuthenticated() {
-        if (currentUser == null) {
-            System.out.println("Вы не авторизованы. Выполните вход в ваш аккаунт");
-            return true;
-        }
-        return false;
+        return currentUser == null;
     }
 
+    /**
+     * Checks if the user is not an admin.
+     * @return true if the user is not an admin, false otherwise
+     */
     public boolean isNotAdmin() {
-        if (!currentUser.getRole().equals(RoleType.ADMIN)) {
-            System.out.println("У вас недостаточно прав для данного действия");
-            return true;
-        }
-        return false;
-    }
-
-    public boolean isEntered() {
-        if (currentUser != null) {
-            System.out.println("Вход в аккаунт уже выполнен");
-            return true;
-        }
-        return false;
+        return !currentUser.getRole().equals(RoleType.ADMIN);
     }
 }
