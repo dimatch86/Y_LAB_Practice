@@ -23,7 +23,7 @@ public abstract class UserMapperDelegate implements UserMapper {
         return User.builder()
                 .email(userDto.getEmail().toLowerCase())
                 .password(BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt()))
-                .role(RoleType.valueOf(userDto.getRole().toUpperCase()))
+                .role(RoleType.valueOf("ROLE_".concat(userDto.getRole().trim().toUpperCase())))
                 .build();
     }
 

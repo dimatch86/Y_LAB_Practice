@@ -3,14 +3,19 @@ package org.example.monitoringservice.in.controller.swagger;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.monitoringservice.dto.request.ReadingDto;
-import org.example.monitoringservice.dto.response.ReadingResponse;
+import org.example.monitoringservice.dto.response.ReadingListResponseDto;
+import org.example.monitoringservice.dto.response.ReadingResponseDto;
 import org.example.monitoringservice.dto.response.ResponseDto;
+import org.example.monitoringservice.dto.response.UserResponseDto;
+import org.example.monitoringservice.security.AppUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -20,36 +25,45 @@ import java.util.List;
 public interface SwaggerReadingController {
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Показания успешно переданы"),
+            @ApiResponse(responseCode = "200", description = "Показания успешно переданы",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDto.class, type = "array"))),
             @ApiResponse(responseCode = "404", description = "Не поддерживаемый тип показаний",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "Пользователь не авторизован",
                     content = @Content)})
     @Operation(summary = "Передача показаний")
-    ResponseEntity<ResponseDto<?>> sendReading(@RequestBody @Valid ReadingDto readingDto);
+    ResponseEntity<ResponseDto<?>> sendReading(@RequestBody @Valid ReadingDto readingDto, AppUserDetails userDetails);
 
     @Operation(summary = "Вывод списка актуальных показаний. Пользователь с ролью \"USER\" получает список только своих покаказаний")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Успешный запрос"),
+            @ApiResponse(responseCode = "200", description = "Успешный запрос",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ReadingListResponseDto.class, type = "array"))),
             @ApiResponse(responseCode = "401", description = "Пользователь не авторизован",
                     content = @Content)})
-    ResponseEntity<ResponseDto<List<ReadingResponse>>> getActualReadings();
+    ResponseEntity<ResponseDto<List<ReadingResponseDto>>> getActualReadings(AppUserDetails userDetails);
 
     @Operation(summary = "Вывод истории показаний. Пользователь с ролью \"USER\" получает список только своих покаказаний")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Успешный запрос"),
+            @ApiResponse(responseCode = "200", description = "Успешный запрос",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ReadingListResponseDto.class, type = "array"))),
             @ApiResponse(responseCode = "401", description = "Пользователь не авторизован",
                     content = @Content)})
-    ResponseEntity<ResponseDto<List<ReadingResponse>>> getHistoryOfReadings();
+    ResponseEntity<ResponseDto<List<ReadingResponseDto>>> getHistoryOfReadings(AppUserDetails userDetails);
 
     @Operation(summary = "Вывод показаний за определенный месяц. Номер месяца указывается в параметре запроса. " +
             "Пользователь с ролью \"USER\" получает список только своих покаказаний")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Успешный запрос"),
+            @ApiResponse(responseCode = "200", description = "Успешный запрос",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ReadingListResponseDto.class, type = "array"))),
             @ApiResponse(responseCode = "400", description = "Некорректный запрос, отсутствует параметр",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "Пользователь не авторизован",
                     content = @Content)})
-    ResponseEntity<ResponseDto<List<ReadingResponse>>> getReadingsByMonth(@RequestParam(value = "monthNumber", required = false)
-                                                                          @Parameter(name = "monthNumber", description = "month number parameter", example = "2") Integer monthNumber);
+    ResponseEntity<ResponseDto<List<ReadingResponseDto>>> getReadingsByMonth(@RequestParam(value = "monthNumber", required = false)
+                                                                          @Parameter(name = "monthNumber", description = "month number parameter", example = "2") Integer monthNumber,
+                                                                             AppUserDetails userDetails);
 }

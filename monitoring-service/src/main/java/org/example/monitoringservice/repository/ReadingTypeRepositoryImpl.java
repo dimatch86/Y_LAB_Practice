@@ -8,6 +8,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -45,5 +47,20 @@ public class ReadingTypeRepositoryImpl implements ReadingTypeRepository {
                     rowSet.getString("type")));
         }
         return availableReading;
+    }
+
+    /**
+     * Finds the available readings from the database.
+     * @return A list of strings representing the available readings
+     */
+    @Override
+    public List<String> findAvailableReadings() {
+        String sql ="SELECT * FROM monitoring_service_schema.available_reading";
+        List<String> availableReadings = new ArrayList<>();
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+        while (rowSet.next()) {
+            availableReadings.add(rowSet.getString("type"));
+        }
+        return availableReadings;
     }
 }

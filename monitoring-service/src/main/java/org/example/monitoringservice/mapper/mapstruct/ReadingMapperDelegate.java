@@ -1,13 +1,14 @@
 package org.example.monitoringservice.mapper.mapstruct;
 
 import org.example.monitoringservice.dto.request.ReadingDto;
-import org.example.monitoringservice.dto.response.ReadingResponse;
+import org.example.monitoringservice.dto.response.ReadingResponseDto;
 import org.example.monitoringservice.model.reading.Reading;
 import org.example.monitoringservice.util.DateConverter;
-import org.example.monitoringservice.util.UserContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 /**
  * An implementation of the ReadingMapper interface that provides additional mapping behaviors.
  * Extends the ReadingMapper interface and implements custom mapping methods.
@@ -20,10 +21,10 @@ public abstract class ReadingMapperDelegate implements ReadingMapper {
      * @param readingDto the input ReadingDto object
      * @return a corresponding Reading object with additional properties set
      */
-    public Reading readingDtoToReading(ReadingDto readingDto) {
+    public Reading readingDtoToReading(ReadingDto readingDto, UUID personalAccount) {
         return Reading.builder()
                 .readingValue(Double.parseDouble(readingDto.getValue()))
-                .personalAccount(UserContext.getCurrentUser().getPersonalAccount())
+                .personalAccount(personalAccount)
                 .readingType(readingDto.getType().toUpperCase())
                 .build();
     }
@@ -33,8 +34,8 @@ public abstract class ReadingMapperDelegate implements ReadingMapper {
      * @param reading the input Reading object
      * @return a corresponding ReadingResponse object with formatted sending date
      */
-    private ReadingResponse readingToReadingResponse(Reading reading) {
-        return ReadingResponse.builder()
+    private ReadingResponseDto readingToReadingResponse(Reading reading) {
+        return ReadingResponseDto.builder()
                 .value(reading.getReadingValue())
                 .readingType(reading.getReadingType())
                 .personalAccount(reading.getPersonalAccount())
@@ -50,7 +51,7 @@ public abstract class ReadingMapperDelegate implements ReadingMapper {
      * @return a corresponding list of ReadingResponse objects
      */
     @Override
-    public List<ReadingResponse> readingListToResponseList(List<Reading> readingList) {
+    public List<ReadingResponseDto> readingListToResponseList(List<Reading> readingList) {
         if (readingList == null) {
             return new ArrayList<>();
         }

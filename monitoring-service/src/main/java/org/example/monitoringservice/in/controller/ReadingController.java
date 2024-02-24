@@ -3,17 +3,17 @@ package org.example.monitoringservice.in.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.monitoringservice.dto.request.ReadingDto;
-import org.example.monitoringservice.dto.response.ReadingResponse;
+import org.example.monitoringservice.dto.response.ReadingResponseDto;
 import org.example.monitoringservice.dto.response.ResponseDto;
-import org.example.monitoringservice.exception.custom.NotAuthenticatedException;
 import org.example.monitoringservice.exception.custom.ParameterMissingException;
 import org.example.monitoringservice.in.controller.swagger.SwaggerReadingController;
 import org.example.monitoringservice.mapper.mapstruct.ReadingMapper;
 import org.example.monitoringservice.model.reading.Reading;
+import org.example.monitoringservice.security.AppUserDetails;
 import org.example.monitoringservice.service.ReadingService;
 import org.example.monitoringservice.util.ResponseUtil;
-import org.example.monitoringservice.util.UserContext;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,11 +36,8 @@ public class ReadingController implements SwaggerReadingController {
      */
     @PostMapping( "/send")
     @Override
-    public ResponseEntity<ResponseDto<?>> sendReading(@RequestBody @Valid ReadingDto readingDto) {
-        if (UserContext.isNotAuthenticated()) {
-            throw new NotAuthenticatedException();
-        }
-        readingService.send(readingMapper.readingDtoToReading(readingDto));
+    public ResponseEntity<ResponseDto<?>> sendReading(@RequestBody @Valid ReadingDto readingDto, @AuthenticationPrincipal AppUserDetails userDetails) {
+        readingService.send(readingMapper.readingDtoToReading(readingDto, userDetails.getPersonalAccount()));
         return ResponseEntity.ok(ResponseUtil.okResponse("Показания успешно отправлены"));
     }
 
@@ -50,12 +47,9 @@ public class ReadingController implements SwaggerReadingController {
      */
     @GetMapping("/actual")
     @Override
-    public ResponseEntity<ResponseDto<List<ReadingResponse>>> getActualReadings() {
-        if (UserContext.isNotAuthenticated()) {
-            throw new NotAuthenticatedException();
-        }
+    public ResponseEntity<ResponseDto<List<ReadingResponseDto>>> getActualReadings(@AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.ok(ResponseUtil.okResponseWithData(readingMapper
-                .readingListToResponseList(readingService.getActualReadings())));
+                .readingListToResponseList(readingService.getActualReadings(userDetails.getPersonalAccount().toString()))));
     }
 
     /**
@@ -64,12 +58,9 @@ public class ReadingController implements SwaggerReadingController {
      */
     @GetMapping("/history")
     @Override
-    public ResponseEntity<ResponseDto<List<ReadingResponse>>> getHistoryOfReadings() {
-        if (UserContext.isNotAuthenticated()) {
-            throw new NotAuthenticatedException();
-        }
+    public ResponseEntity<ResponseDto<List<ReadingResponseDto>>> getHistoryOfReadings(@AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.ok(ResponseUtil.okResponseWithData(readingMapper
-                .readingListToResponseList(readingService.getHistoryOfReadings())));
+                .readingListToResponseList(readingService.getHistoryOfReadings(userDetails.getPersonalAccount().toString()))));
     }
 
     /**
@@ -79,14 +70,12 @@ public class ReadingController implements SwaggerReadingController {
      */
     @GetMapping("/month")
     @Override
-    public ResponseEntity<ResponseDto<List<ReadingResponse>>> getReadingsByMonth(@RequestParam(value = "monthNumber", required = false) Integer monthNumber) {
-        if (UserContext.isNotAuthenticated()) {
-            throw new NotAuthenticatedException();
-        }
+    public ResponseEntity<ResponseDto<List<ReadingResponseDto>>> getReadingsByMonth(@RequestParam(value = "monthNumber", required = false) Integer monthNumber,
+                                                                                    @AuthenticationPrincipal AppUserDetails userDetails) {
         if (monthNumber == null) {
             throw new ParameterMissingException("Не задан номер месяца");
         }
-        List<Reading> readingsByMonth = readingService.getReadingsByMonth(monthNumber);
+        List<Reading> readingsByMonth = readingService.getReadingsByMonth(monthNumber, userDetails.getPersonalAccount().toString());
         return ResponseEntity.ok(ResponseUtil.okResponseWithData(readingMapper
                 .readingListToResponseList(readingsByMonth)));
     }

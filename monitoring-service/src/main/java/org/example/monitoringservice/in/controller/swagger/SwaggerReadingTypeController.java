@@ -2,6 +2,7 @@ package org.example.monitoringservice.in.controller.swagger;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface SwaggerReadingTypeController {
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Успешный запрос"),
+            @ApiResponse(responseCode = "200", description = "Успешный запрос", content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ResponseDto.class, type = "array"))),
             @ApiResponse(responseCode = "400", description = "Попытка добаления уже существующего типа", content = @Content),
             @ApiResponse(responseCode = "401", description = "Пользователь не авторизован или не является администратором",
                     content = @Content)})

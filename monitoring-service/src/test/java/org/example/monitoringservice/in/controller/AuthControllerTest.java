@@ -1,178 +1,138 @@
 package org.example.monitoringservice.in.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.monitoringservice.dto.request.LoginRequestDto;
-import org.example.monitoringservice.dto.request.UserDto;
-import org.example.monitoringservice.dto.response.UserResponseDto;
-import org.example.monitoringservice.exception.GlobalExceptionHandler;
 import org.example.monitoringservice.exception.custom.UserAlreadyExistException;
-import org.example.monitoringservice.exception.custom.UserNotFoundException;
-import org.example.monitoringservice.mapper.mapstruct.UserMapper;
-import org.example.monitoringservice.model.user.RoleType;
-import org.example.monitoringservice.model.user.User;
-import org.example.monitoringservice.service.AuthenticationServiceImpl;
-import org.example.monitoringservice.util.UserContext;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mindrot.jbcrypt.BCrypt;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.time.Instant;
-import java.util.UUID;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-@ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
-class AuthControllerTest {
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
-    @Mock
-    private UserMapper userMapper;
-    @Mock
-    private AuthenticationServiceImpl authenticationService;
-    @InjectMocks
-    private AuthController authController;
-    private static final String EMAIL = "admin@mail.ru";
 
+@DisplayName("Контроллер аутентификации")
 
-    @BeforeEach
-    public void setup() {
-        objectMapper = new ObjectMapper();
-        mockMvc = MockMvcBuilders.standaloneSetup(authController)
-                .setControllerAdvice(new GlobalExceptionHandler()).build();
-    }
+class AuthControllerTest extends AbstractTest {
 
-    @AfterEach
-    public void tearDown() {
-        UserContext.setCurrentUser(null);
+    @Test
+    @DisplayName("Получение информации о текущем пользователе")
+    @WithMockUser(username = "user@mail.ru")
+    void testGetUserInfo_WhenAuthenticatedUser_ThenReturnsOk() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/auth/info")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("user@mail.ru"));
     }
 
     @Test
+    @DisplayName("Регистрация с валидными данными -> ОК")
+    @WithMockUser
     void testRegistration_WhenPostWithValidRequestBody_ThenReturnsOk() throws Exception {
-        UserDto userDto = new UserDto("admin@mail.ru", "userPassword", "USER");
-        String json = objectMapper.writeValueAsString(userDto);
+
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content("""
+                        {
+                          "email": "new@mail.ru",
+                          "password": "testtest",
+                          "role": "USER"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
 
     @Test
+    @DisplayName("Регистрация с невалидными данными -> BAD REQUEST")
+    @WithMockUser
     void testRegistration_WhenPostWithInvalidRequestBody_ThenReturnsBadRequest() throws Exception {
-        UserDto userDto = new UserDto("admin@mail.ru", "", "USER");
-        String json = objectMapper.writeValueAsString(userDto);
+
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content("""
+                        {
+                          "email": "adminmail.ru",
+                          "password": "adminapassword",
+                          "role": "ROLE_USER"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @DisplayName("Регистрация существующего пользователя -> BAD REQUEST")
+    @WithMockUser
     void testRegistration_WhenUserAlreadyExists_ThenReturnsBadRequest() throws Exception {
-        UserDto userDto = new UserDto("admin@mail.ru", "adminpassword", "USER");
-        String json = objectMapper.writeValueAsString(userDto);
-        doThrow(UserAlreadyExistException.class).when(authenticationService).registerUser(any());
+
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content("""
+                        {
+                          "email": "admin@mail.ru",
+                          "password": "adminapassword",
+                          "role": "ADMIN"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof UserAlreadyExistException))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @DisplayName("Логин существующего пользователя с валидными данными -> ОК")
+    @WithMockUser
     void testLogin_WhenPostWithValidRequestBody_ThenReturnsOk() throws Exception {
 
-        UUID personalAccount = UUID.randomUUID();
-        Instant regDate = Instant.now();
-        LoginRequestDto loginRequestDto = new LoginRequestDto("admin@mail.ru", "userPassword");
-        User user = new User(personalAccount, "diman@mail.ru", BCrypt.hashpw("userPassword", BCrypt.gensalt()), RoleType.USER, regDate);
-        UserResponseDto userResponse = new UserResponseDto("admin@mail.ru", String.valueOf(personalAccount), regDate.toString());
-        String json = objectMapper.writeValueAsString(loginRequestDto);
-
-        when(authenticationService.login(loginRequestDto)).thenReturn(user);
-        when(userMapper.userToUserResponse(user)).thenReturn(userResponse);
-
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content("""
+                        {
+                          "email": "user@mail.ru",
+                          "password": "shima444"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.email").value(EMAIL));
-        verify(authenticationService, times(1)).login(loginRequestDto);
+                .andExpect(jsonPath("$.data.email").value("user@mail.ru"));
     }
 
     @Test
-    void testLogin_WhenPostWithInvalidRequestBody_ThenReturnsBadRequest() throws Exception {
-        LoginRequestDto loginRequestDto = new LoginRequestDto("", "userPassword");
-        String json = objectMapper.writeValueAsString(loginRequestDto);
+    @DisplayName("Логин существующего пользователя с невалидными данными -> BAD REQUEST")
+    @WithMockUser
+    void testLogin_WhenPostWithInvalidRequestBody_ThenBadRequest() throws Exception {
+
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(result -> assertTrue(result.getResolvedException()
-                        instanceof MethodArgumentNotValidException))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
-        verify(authenticationService, times(0)).login(loginRequestDto);
-    }
-
-    @Test
-    void testLogin_WhenUserNotFound_ThenReturnsNotFound() throws Exception {
-        LoginRequestDto loginRequestDto = new LoginRequestDto("someanother@mail.ru", "userPassword");
-        String json = objectMapper.writeValueAsString(loginRequestDto);
-        when(authenticationService.login(loginRequestDto))
-                .thenThrow(new UserNotFoundException("Пользователь не найден"));
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(result -> assertTrue(result.getResolvedException()
-                        instanceof UserNotFoundException))
-                .andExpect(status().isNotFound())
-                .andDo(print());
-        verify(authenticationService, times(1)).login(loginRequestDto);
-    }
-
-    @Test
-    void testGetUserInfo_WhenAuthenticatedUser_ThenReturnsOk() throws Exception {
-        UUID personalAccount = UUID.randomUUID();
-        Instant regDate = Instant.now();
-        User currentUser = new User(personalAccount, "diman@mail.ru", BCrypt.hashpw("userPassword", BCrypt.gensalt()), RoleType.USER, regDate);
-        UserResponseDto userResponse = new UserResponseDto("admin@mail.ru", String.valueOf(personalAccount), regDate.toString());
-        UserContext.setCurrentUser(currentUser);
-
-        when(userMapper.userToUserResponse(currentUser)).thenReturn(userResponse);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/auth/info")
-                        .contentType(MediaType.APPLICATION_JSON))
-
+                        .content("""
+                        {
+                          "email": "",
+                          "password": "userpassword"
+                        }
+                    """))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.email").value(EMAIL));
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testGetUserInfo_WhenNotAuthenticatedUser_ThenReturnsUnauthorized() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/auth/info")
-                        .contentType(MediaType.APPLICATION_JSON))
+    @DisplayName("Логин существующего пользователя с невалидными паролем -> UNAUTHORIZED")
+    @WithMockUser
+    void testLogin_WhenPostWithInvalidPassword_ThenUnauthorized() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                          "email": "user@mail.ru",
+                          "password": "userpass"
+                        }
+                    """))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }

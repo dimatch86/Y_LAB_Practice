@@ -1,12 +1,14 @@
 package org.example.monitoringservice.mapper.mapstruct;
 
 import org.example.monitoringservice.dto.request.ReadingDto;
-import org.example.monitoringservice.dto.response.ReadingResponse;
+import org.example.monitoringservice.dto.response.ReadingResponseDto;
 import org.example.monitoringservice.model.reading.Reading;
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 
 import java.util.List;
+import java.util.UUID;
+
 /**
  * An interface that serves as a mapper for converting data transfer objects (DTO) to
  * domain objects and vice versa.
@@ -21,12 +23,12 @@ public interface ReadingMapper {
      * @param readingDto the input ReadingDto object
      * @return a corresponding Reading object
      */
-    Reading readingDtoToReading(ReadingDto readingDto);
+    Reading readingDtoToReading(ReadingDto readingDto, UUID personalAccount);
 
     /**
      * Converts a list of Reading objects to a list of ReadingResponse objects.
      * @param readingList the input list of Reading objects
      * @return a corresponding list of ReadingResponse objects
      */
-    List<ReadingResponse> readingListToResponseList(List<Reading> readingList);
+    List<ReadingResponseDto> readingListToResponseList(List<Reading> readingList);
 }

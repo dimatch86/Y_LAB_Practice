@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="insert-users" author="dimatch86">
+        <insert tableName="user">
+            <column name="id" value="100"/>
+            <column name="email" value="admin@mail.ru"/>
+            <column name="password" value="$2a$10$.5iSHQXKATmWwl2OImS2uOKP4cxC1ftw5boYEXYGtfTKQ.tKirx1i"/>
+            <column name="role" value="ROLE_ADMIN"/>
+            <column name="personal_account" value="9e597713-8825-4579-b3df-f26ee1f58497"/>
+            <column name="registration_date" value="2024-02-23 08:57:50.879918"/>
+        </insert>
+        <insert tableName="user">
+            <column name="id" value="101"/>
+            <column name="email" value="user@mail.ru"/>
+            <column name="password" value="$2a$10$.5iSHQXKATmWwl2OImS2uOKP4cxC1ftw5boYEXYGtfTKQ.tKirx1i"/>
+            <column name="role" value="ROLE_USER"/>
+            <column name="personal_account" value="9e597713-8725-4579-b3df-f26ee1f58497"/>
+            <column name="registration_date" value="2024-02-23 08:57:50.879918"/>
+        </insert>
+
+
+    </changeSet>
+</databaseChangeLog>

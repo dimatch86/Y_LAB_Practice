@@ -1,0 +1,91 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.0'
+	id 'io.spring.dependency-management' version '1.1.4'
+}
+
+
+group = 'org.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+compileJava.options.encoding = 'UTF-8'
+javadoc.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+def openApiVersion = '2.1.0'
+def mapstructVersion = '1.5.3.Final'
+def jacksonCoreVersion = '2.15.3'
+def jacksonDatatypeVersion = '2.12.5'
+def jbcryptVersion = '0.4'
+def jjwtVersion = '0.9.1'
+def jaxbVersion = '2.3.1'
+def logbackVersion = '1.4.11'
+def lombokVersion = '1.18.22'
+def junitVersion = '5.8.1'
+def lombokMapstructBinding = '0.2.0'
+def junitTestcontainersVersion = '1.17.6'
+def postgresqlTestcontainersVersion = '1.17.6'
+
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:' + openApiVersion
+	implementation 'com.fasterxml.jackson.core:jackson-databind:' + jacksonCoreVersion
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:' + jacksonDatatypeVersion
+	implementation 'org.mapstruct:mapstruct:' + mapstructVersion
+	implementation 'org.liquibase:liquibase-core'
+	implementation 'org.mindrot:jbcrypt:' + jbcryptVersion
+	implementation 'io.jsonwebtoken:jjwt:' + jjwtVersion
+	implementation 'javax.xml.bind:jaxb-api:' + jaxbVersion
+	implementation 'ch.qos.logback:logback-classic:' + logbackVersion
+	implementation 'org.projectlombok:lombok:' + lombokVersion
+	annotationProcessor 'org.mapstruct:mapstruct-processor:' + mapstructVersion
+	annotationProcessor 'org.projectlombok:lombok:' + lombokVersion
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:' + lombokMapstructBinding
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	implementation 'io.ylab:logging-boot-starter:0.0.1-SNAPSHOT'
+	implementation 'io.ylab:audit-boot-starter:0.0.1-SNAPSHOT'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter:' + junitVersion
+	testImplementation 'org.testcontainers:junit-jupiter:' + junitTestcontainersVersion
+	testImplementation 'org.testcontainers:postgresql:' + postgresqlTestcontainersVersion
+	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+jar {
+	manifest {
+		attributes(
+				'Main-Class': 'org.springframework.boot.SpringApplication'
+		)
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

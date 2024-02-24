@@ -217,26 +217,6 @@
 			"response": []
 		},
 		{
-			"name": "audit",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/monitoring-service/audit",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"monitoring-service",
-						"audit"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "user-info",
 			"request": {
 				"method": "GET",

@@ -3,6 +3,7 @@ package org.example.monitoringservice.exception;
 import org.example.monitoringservice.exception.custom.*;
 import org.example.monitoringservice.util.ResponseUtil;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -14,14 +15,6 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler({NotAuthenticatedException.class,
-            NotEnoughRightsException.class,
-            BadCredentialsException.class})
-    public ResponseEntity<Object> handleNotAuthenticatedException(CustomException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseUtil.errorResponse(e.getLocalizedMessage()));
-    }
 
     @ExceptionHandler({InvalidDataException.class,
             TooRecentReadingException.class,
@@ -52,5 +45,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ResponseUtil.errorResponse(errorMessage));
+    }
+
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<Object> handleDuplicateKeyException(UserAlreadyExistException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ResponseUtil.errorResponse(e.getLocalizedMessage()));
     }
 }

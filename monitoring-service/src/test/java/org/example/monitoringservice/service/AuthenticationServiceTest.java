@@ -1,32 +1,33 @@
 package org.example.monitoringservice.service;
 
 import org.example.monitoringservice.dto.request.LoginRequestDto;
-import org.example.monitoringservice.exception.custom.BadCredentialsException;
-import org.example.monitoringservice.exception.custom.UserAlreadyExistException;
-import org.example.monitoringservice.exception.custom.UserNotFoundException;
+import org.example.monitoringservice.dto.response.AuthResponseDto;
 import org.example.monitoringservice.model.user.RoleType;
 import org.example.monitoringservice.model.user.User;
 import org.example.monitoringservice.repository.UserRepositoryImpl;
-import org.example.monitoringservice.util.UserContext;
-import org.junit.jupiter.api.AfterEach;
+import org.example.monitoringservice.security.AppUserDetails;
+import org.example.monitoringservice.security.jwt.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class AuthenticationServiceTest {
 
     private final UserRepositoryImpl userRepository = mock(UserRepositoryImpl.class);
-    private final AuthenticationService authenticationService = new AuthenticationServiceImpl(userRepository);
+    private final JwtUtils jwtUtils = mock(JwtUtils.class);
+    Authentication authentication = mock(Authentication.class);
+    private final AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
+    private final AuthenticationService authenticationService = new AuthenticationServiceImpl(userRepository, authenticationManager, jwtUtils);
     User currentUser;
     User newUser;
     UUID personalAccount;
@@ -36,13 +37,8 @@ class AuthenticationServiceTest {
 
         personalAccount = UUID.randomUUID();
 
-        currentUser = new User(personalAccount, "user@mail.ru", "testPassword", RoleType.USER, Instant.now());
-        newUser = new User(personalAccount, "new@mail.ru", "passwordTest", RoleType.USER, Instant.now());
-    }
-
-    @AfterEach
-    public void tearDown() {
-        UserContext.setCurrentUser(null);
+        currentUser = new User(personalAccount, "user@mail.ru", "testPassword", RoleType.ROLE_USER, Instant.now());
+        newUser = new User(personalAccount, "new@mail.ru", "passwordTest", RoleType.ROLE_USER, Instant.now());
     }
 
     @Test
@@ -57,52 +53,22 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void registerUser_whenRegisterUserForExistingUser_expectExceptionThrown() {
-        when(userRepository.findByEmail(newUser.getEmail())).thenReturn(Optional.of(newUser));
+    void testLogin() {
+        LoginRequestDto loginRequestDto = new LoginRequestDto("test@example.com", "password");
 
-        assertThatThrownBy(() -> authenticationService.registerUser(newUser))
-                .isInstanceOf(UserAlreadyExistException.class)
-                .hasMessage("Пользователь с email new@mail.ru уже зарегистрирован");
-        verify(userRepository, times(0))
-                .saveUser(newUser);
-    }
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
-    @Test
-    void loginUser_whenLoginExistedUser_thenSuccess() {
-        String hashedPassword = BCrypt.hashpw(newUser.getPassword(), BCrypt.gensalt());
+        when(authenticationManager.authenticate(usernamePasswordAuthenticationToken)).thenReturn(authentication);
+        User user = User.builder().email("test@example.com").password("12121").role(RoleType.ROLE_USER).build();
 
-        when(userRepository.findByEmail(newUser.getEmail()))
-                .thenReturn(Optional.of(new User(personalAccount, "new@mail.ru", hashedPassword, RoleType.USER, Instant.now())));
+        AppUserDetails userDetails = new AppUserDetails(user);
 
-        authenticationService.login(new LoginRequestDto(newUser.getEmail(), newUser.getPassword()));
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(jwtUtils.generateJwtToken(userDetails)).thenReturn("jwtToken");
 
-        assertNotNull(UserContext.getCurrentUser());
-        assertThat(UserContext.getCurrentUser().getEmail()).isEqualTo("new@mail.ru");
-    }
-
-    @Test
-    void loginUser_whenLoginNotExistedUser_expectExceptionThrown() {
-
-        when(userRepository.findByEmail(newUser.getEmail()))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> authenticationService.login(new LoginRequestDto(newUser.getEmail(), newUser.getPassword())))
-                .isInstanceOf(UserNotFoundException.class)
-                .hasMessage("Пользователь с email new@mail.ru не найден");
-        assertNull(UserContext.getCurrentUser());
-    }
-
-    @Test
-    void loginUser_whenLoginWithWrongPassword_expectExceptionThrown() {
-
-        String hashedPassword = BCrypt.hashpw(newUser.getPassword(), BCrypt.gensalt());
-
-        when(userRepository.findByEmail(newUser.getEmail()))
-                .thenReturn(Optional.of(new User(personalAccount, "new@mail.ru", hashedPassword, RoleType.USER, Instant.now())));
-
-        assertThatThrownBy(() -> authenticationService.login(new LoginRequestDto(newUser.getEmail(), "wrong password")))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Неверный пароль");
-        assertNull(UserContext.getCurrentUser());
+        AuthResponseDto authResponseDto = authenticationService.login(loginRequestDto);
+        assertThat(authResponseDto.getToken()).isEqualTo("jwtToken");
+        assertThat(authResponseDto.getEmail()).isEqualTo("test@example.com");
+        assertThat(authResponseDto.getRoles()).isEqualTo(Collections.singletonList("ROLE_USER"));
     }
 }

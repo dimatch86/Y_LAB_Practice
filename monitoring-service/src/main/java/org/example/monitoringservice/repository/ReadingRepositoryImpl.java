@@ -3,7 +3,6 @@ package org.example.monitoringservice.repository;
 import lombok.RequiredArgsConstructor;
 import org.example.monitoringservice.mapper.jdbc_mapper.ReadingRawMapper;
 import org.example.monitoringservice.model.reading.Reading;
-import org.example.monitoringservice.util.UserContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -40,7 +39,7 @@ public class ReadingRepositoryImpl implements ReadingRepository {
      * @param readingType the type of reading for which the latest reading should be retrieved
      * @return an optional containing the latest reading for the specified type, or empty if not found
      */
-    public Optional<Reading> getLatestReading(String readingType) {
+    public Optional<Reading> getLatestReading(String readingType, String personalAccount) {
 
         String latestReadingQuery = "SELECT * " +
                 "FROM monitoring_service_schema.reading r " +
@@ -51,7 +50,7 @@ public class ReadingRepositoryImpl implements ReadingRepository {
                 "ORDER BY r.sending_date DESC LIMIT 1";
         return Optional.ofNullable(jdbcTemplate.query(latestReadingQuery,
                 new ReadingRawMapper(readingType), readingType,
-                UserContext.getCurrentUser().getPersonalAccount().toString()));
+                personalAccount));
     }
 
     /**
@@ -59,7 +58,7 @@ public class ReadingRepositoryImpl implements ReadingRepository {
      * @return A list of Reading objects representing the actual readings found
      */
     @Override
-    public List<Reading> findActualReadings() {
+    public List<Reading> findActualReadings(String personalAccount) {
 
         String sql = "SELECT * FROM monitoring_service_schema.reading r JOIN" +
                 "    ( SELECT type_id, MAX(sending_date) AS max_date" +
@@ -68,11 +67,10 @@ public class ReadingRepositoryImpl implements ReadingRepository {
                 "     JOIN monitoring_service_schema.user u ON r.personal_account = u.personal_account" +
                 "     WHERE  (SELECT u.role" +
                 "            from monitoring_service_schema.user u" +
-                "            where u.personal_account = ?) = 'ADMIN'" +
+                "            where u.personal_account = ?) = 'ROLE_ADMIN'" +
                 "     OR (SELECT u.role from monitoring_service_schema.user u" +
-                "      where u.personal_account = ?) = 'USER' AND u.personal_account = ?";
+                "      where u.personal_account = ?) = 'ROLE_USER' AND u.personal_account = ?";
 
-        String personalAccount = String.valueOf(UserContext.getCurrentUser().getPersonalAccount());
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, personalAccount, personalAccount, personalAccount);
         return extractReadingsFromResultSet(rowSet);
     }
@@ -84,18 +82,17 @@ public class ReadingRepositoryImpl implements ReadingRepository {
      * @return A list of Reading objects representing the readings found for the specified month
      */
     @Override
-    public List<Reading> findReadingsByMonth(int monthNumber) {
+    public List<Reading> findReadingsByMonth(int monthNumber, String personalAccount) {
         String sql ="SELECT * FROM monitoring_service_schema.reading r" +
                 "    JOIN monitoring_service_schema.available_reading ar ON r.type_id = ar.id" +
                 "    JOIN monitoring_service_schema.user u ON r.personal_account = u.personal_account" +
                 "    WHERE  extract(MONTH FROM sending_date) = ? and (SELECT u.role" +
                 "            from monitoring_service_schema.user u" +
-                "                                          where u.personal_account = ?) = 'ADMIN'" +
+                "                                          where u.personal_account = ?) = 'ROLE_ADMIN'" +
                 "OR extract(MONTH FROM sending_date) = ? and (SELECT u.role from monitoring_service_schema.user u" +
-                "     where u.personal_account = ?) = 'USER' AND u.personal_account = ? " +
+                "     where u.personal_account = ?) = 'ROLE_USER' AND u.personal_account = ? " +
                 "order by sending_date desc";
 
-        String personalAccount = String.valueOf(UserContext.getCurrentUser().getPersonalAccount());
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, monthNumber, personalAccount, monthNumber, personalAccount, personalAccount);
         return extractReadingsFromResultSet(rowSet);
     }
@@ -105,34 +102,18 @@ public class ReadingRepositoryImpl implements ReadingRepository {
      * @return A list of Reading objects representing the readings history
      */
     @Override
-    public List<Reading> findReadingsHistory() {
+    public List<Reading> findReadingsHistory(String personalAccount) {
         String sql = "SELECT * FROM monitoring_service_schema.reading r " +
                 "     JOIN monitoring_service_schema.user u ON r.personal_account = u.personal_account " +
                 "     WHERE  (SELECT u.role" +
                 "            from monitoring_service_schema.user u" +
-                "            where u.personal_account = ?) = 'ADMIN'" +
+                "            where u.personal_account = ?) = 'ROLE_ADMIN'" +
                 "     OR (SELECT u.role from monitoring_service_schema.user u" +
-                "      where u.personal_account = ?) = 'USER' AND u.personal_account = ? " +
+                "      where u.personal_account = ?) = 'ROLE_USER' AND u.personal_account = ? " +
                 "     ORDER BY sending_date DESC ";
 
-
-        String personalAccount = String.valueOf(UserContext.getCurrentUser().getPersonalAccount());
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, personalAccount, personalAccount, personalAccount);
         return extractReadingsFromResultSet(rowSet);
-    }
-
-    /**
-     * Finds the available readings from the database.
-     * @return A list of strings representing the available readings
-     */
-    public List<String> findAvailableReadings() {
-        String sql ="SELECT * FROM monitoring_service_schema.available_reading";
-        List<String> availableReadings = new ArrayList<>();
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
-        while (rowSet.next()) {
-            availableReadings.add(rowSet.getString("type"));
-        }
-        return availableReadings;
     }
 
 

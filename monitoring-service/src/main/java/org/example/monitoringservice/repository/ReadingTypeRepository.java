@@ -2,6 +2,7 @@ package org.example.monitoringservice.repository;
 
 import org.example.monitoringservice.model.reading.ReadingType;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -20,4 +21,10 @@ public interface ReadingTypeRepository {
      * @return an optional containing the available reading type, or empty if not found
      */
     Optional<ReadingType> findAvailableReadingByType(String type);
+
+    /**
+     * Retrieves a list of available readings from the repository.
+     * @return a list of available readings
+     */
+    List<String> findAvailableReadings();
 }

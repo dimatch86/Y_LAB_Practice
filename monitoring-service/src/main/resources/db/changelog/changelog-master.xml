@@ -13,4 +13,6 @@
     <include file="changeset/create-available-reading-table.xml" relativeToChangelogFile="true"/>
     <include file="changeset/insert-available-readings.xml" relativeToChangelogFile="true"/>
     <include file="changeset/create-action-table.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/create-blacklist-token-table.xml" relativeToChangelogFile="true"/>
+    <include file="changeset/insert-users.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -1,6 +1,7 @@
 package org.example.monitoringservice.service;
 
 import org.example.monitoringservice.dto.request.LoginRequestDto;
+import org.example.monitoringservice.dto.response.AuthResponseDto;
 import org.example.monitoringservice.model.user.User;
 
 /**
@@ -14,14 +15,11 @@ public interface AuthenticationService {
      */
     void registerUser(User user);
 
+    User findByEmail(String email);
+
     /**
      * Logs a user in.
      * @param loginRequestDto the user's login request
      */
-    User login(LoginRequestDto loginRequestDto);
-
-    /**
-     * Logs a user out.
-     */
-    void logout();
+    AuthResponseDto login(LoginRequestDto loginRequestDto);
 }

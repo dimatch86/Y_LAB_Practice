@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql://localhost:5432/testdb
+    username: test
+    password: test

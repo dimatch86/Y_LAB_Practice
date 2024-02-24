@@ -4,6 +4,6 @@ package org.example.monitoringservice.model.user;
  * can be assigned to a user, such as USER or ADMIN.
  */
 public enum RoleType {
-    USER,
-    ADMIN
+    ROLE_USER,
+    ROLE_ADMIN
 }
