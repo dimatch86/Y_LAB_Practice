@@ -6,15 +6,15 @@
 
     <changeSet id="insert-available-readings" author="dimatch86">
         <insert tableName="available_reading">
-            <column name="id" value="1"/>
+            <column name="id" value="10"/>
             <column name="type" value="ГОРЯЧАЯ ВОДА"/>
         </insert>
         <insert tableName="available_reading">
-            <column name="id" value="2"/>
+            <column name="id" value="20"/>
             <column name="type" value="ХОЛОДНАЯ ВОДА"/>
         </insert>
         <insert tableName="available_reading">
-            <column name="id" value="3"/>
+            <column name="id" value="30"/>
             <column name="type" value="ОТОПЛЕНИЕ"/>
         </insert>
 

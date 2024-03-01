@@ -10,3 +10,14 @@ services:
       POSTGRES_USER: ylab_user
       POSTGRES_PASSWORD: ylab_password
       POSTGRES_DB: monitoring_service_db
+  frontend:
+    container_name: frontend
+    image: dimatch86/monitoring-service-frontend
+    ports:
+      - "8081:8080"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 5
+        window: 60s

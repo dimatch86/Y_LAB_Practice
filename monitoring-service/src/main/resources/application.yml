@@ -1,0 +1,35 @@
+server:
+  port: 8085
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5434/monitoring_service_db
+    username: ylab_user
+    password: ylab_password
+  liquibase:
+    enabled: true
+    drop-first: false
+    default-schema: monitoring_service_schema
+    change-log: classpath:db/changelog/changelog-master.xml
+    liquibase-schema: data_changelog_schema
+jwt:
+  secret: tyiuroiuopyiuioytidgfhdfqwerzxcqwer
+  expiration: 30m
+scheduled-tasks:
+  blacklist: 0 0 0 * * ?
+
+audit:
+  enabled: true
+
+swagger:
+  title: Application API
+  version: 1.0
+  description: Monitoring service API
+  license:
+    name: Apache 2.0
+    url: http://springdoc.org
+  contact:
+    name: '@Dimatch86'
+    email: dimatch86@mail.ru
+  server:
+    url: http://localhost:8085/monitoring-service
