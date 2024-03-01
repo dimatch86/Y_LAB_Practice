@@ -58,8 +58,6 @@ docker-compose up -d
 - http://localhost:8085/monitoring-service/reading/actual - вывод всех актуальных показаний, GET-запрос;
 - http://localhost:8085/monitoring-service/reading/month?monthNum=2 - вывод показаний за конкретный месяц GET-запрос, содержит обязательный параметр;
 - http://localhost:8085/monitoring-service/reading/history - вывод истории подачи показаний;
----
-Приложение логирует действия пользователя с отображением логов в консоли сервера.
 
 ---
 
