@@ -140,7 +140,7 @@ class ReadingControllerTest extends AbstractTest {
         readingService.send(actualReading);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/reading/month")
-                        .param("monthNumber", "2"))
+                        .param("monthNumber", "3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(1));
     }

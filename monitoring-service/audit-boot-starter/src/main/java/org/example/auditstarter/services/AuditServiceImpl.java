@@ -2,9 +2,9 @@ package org.example.auditstarter.services;
 
 
 
+import lombok.RequiredArgsConstructor;
 import org.example.auditstarter.model.Action;
 import org.example.auditstarter.repository.ActionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -12,14 +12,10 @@ import org.springframework.stereotype.Service;
  * and provides methods for saving and retrieving audit actions.
  */
 @Service
+@RequiredArgsConstructor
 public class AuditServiceImpl implements AuditService {
 
     private final ActionRepository actionRepository;
-
-    @Autowired
-    public AuditServiceImpl(ActionRepository actionRepository) {
-        this.actionRepository = actionRepository;
-    }
 
     /**
      * Saves the given action into the audit log.
