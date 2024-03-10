@@ -1,5 +1,6 @@
 package org.example.auditstarter.aop;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -7,8 +8,6 @@ import org.aspectj.lang.annotation.Pointcut;
 
 import org.example.auditstarter.model.Action;
 import org.example.auditstarter.services.AuditService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,8 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.Instant;
 
 @Aspect
+@Slf4j
 public class AuditableAspect {
-    private static final Logger log = LoggerFactory.getLogger(AuditableAspect.class);
     private final AuditService auditService;
 
     @Autowired

@@ -2,12 +2,15 @@ package org.example.monitoringservice.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.example.monitoringservice.exception.custom.DbException;
+import org.example.monitoringservice.exception.custom.ReadingTypeAlreadyExistsException;
 import org.example.monitoringservice.model.reading.ReadingType;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +31,12 @@ public class ReadingTypeRepositoryImpl implements ReadingTypeRepository {
         String sql = "INSERT INTO monitoring_service_schema.available_reading " +
                 "(id, type) " +
                 "VALUES (NEXTVAL('jdbc_sequence'), ?)";
-        jdbcTemplate.update(sql, readingType.getType());
+        try {
+            jdbcTemplate.update(sql, readingType.getType());
+        } catch (DuplicateKeyException e) {
+            throw new ReadingTypeAlreadyExistsException(MessageFormat
+                    .format("Тип показаний {0} уже существует в базе", readingType.getType()));
+        }
     }
 
     /**

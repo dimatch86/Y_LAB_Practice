@@ -1,8 +1,8 @@
 package org.example.auditstarter.repository;
 
 
+import lombok.RequiredArgsConstructor;
 import org.example.auditstarter.model.Action;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,14 +12,10 @@ import org.springframework.stereotype.Repository;
  * specified URL, username, and password.
  */
 @Repository
+@RequiredArgsConstructor
 public class ActionRepositoryImpl implements ActionRepository {
 
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public ActionRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     /**
      * Saves the given Action object to the repository by inserting into the database.

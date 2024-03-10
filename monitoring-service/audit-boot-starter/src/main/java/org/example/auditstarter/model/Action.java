@@ -2,6 +2,11 @@ package org.example.auditstarter.model;
 
 
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.Instant;
 
 /**
@@ -10,6 +15,10 @@ import java.time.Instant;
  * and the time the action was created.
  */
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Action {
 
     private String actionMethod;
@@ -23,34 +32,4 @@ public class Action {
      * The time when the action was created. Defaults to the current time.
      */
     private Instant createAt;
-
-    public Action(String actionMethod, String actionedBy, Instant createAt) {
-        this.actionMethod = actionMethod;
-        this.actionedBy = actionedBy;
-        this.createAt = createAt;
-    }
-
-    public String getActionMethod() {
-        return actionMethod;
-    }
-
-    public String getActionedBy() {
-        return actionedBy;
-    }
-
-    public Instant getCreateAt() {
-        return createAt;
-    }
-
-    public void setActionMethod(String actionMethod) {
-        this.actionMethod = actionMethod;
-    }
-
-    public void setActionedBy(String actionedBy) {
-        this.actionedBy = actionedBy;
-    }
-
-    public void setCreateAt(Instant createAt) {
-        this.createAt = createAt;
-    }
 }
